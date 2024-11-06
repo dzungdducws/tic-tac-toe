@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import Game from './game/game';
 import './App.css';

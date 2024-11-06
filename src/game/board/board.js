@@ -1,5 +1,4 @@
-// src/Board.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Popup from "reactjs-popup";
 
 import Square from "./square/square";
@@ -14,18 +13,21 @@ function Board({ mode, isFirst }) {
   const [oScore, setOScore] = useState(0);
   const [draw, setDraw] = useState(0);
 
-  function handleClick(index) {
-    if (squares[index] || calculateWinner(squares) || isComputerTurn) return;
+  const handleClick = useCallback(
+    (index) => {
+      if (squares[index] || calculateWinner(squares) || isComputerTurn) return;
 
-    const newSquares = squares.slice();
-    newSquares[index] = isXNext ? "X" : "O";
-    setSquares(newSquares);
-    setIsXNext(!isXNext);
+      const newSquares = squares.slice();
+      newSquares[index] = isXNext ? "X" : "O";
+      setSquares(newSquares);
+      setIsXNext(!isXNext);
 
-    if (calculateWinner(newSquares) || !newSquares.includes(null)) {
-      setOpen(true);
-    }
-  }
+      if (calculateWinner(newSquares) || !newSquares.includes(null)) {
+        setOpen(true);
+      }
+    },
+    [squares, isXNext, isComputerTurn]
+  );
 
   useEffect(() => {
     if (mode === "PVE" && isXNext !== isFirst && !calculateWinner(squares)) {
@@ -46,7 +48,7 @@ function Board({ mode, isFirst }) {
         setIsComputerTurn(false);
       }, timedelay);
     }
-  }, [isXNext]);
+  }, [isXNext, handleClick, isFirst, mode, squares]);
 
   const handleClosePopup = () => {
     if (winner) {
