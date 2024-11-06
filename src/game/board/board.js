@@ -4,7 +4,7 @@ import Popup from "reactjs-popup";
 import Square from "./square/square";
 import PopupComponent from "./popup/popup";
 
-function Board({ mode, isFirst }) {
+function Board({ mode, isFirst, difficulty }) {
   const [squares, setSquares] = useState(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(isFirst ? isFirst : true);
   const [open, setOpen] = useState(false);
@@ -34,21 +34,31 @@ function Board({ mode, isFirst }) {
       setIsComputerTurn(true);
 
       const timedelay = Math.floor(Math.random() * (3000 - 1000)) + 1000;
-      console.log(timedelay);
       setTimeout(() => {
-        const emptySquares = squares
-          .map((sq, idx) => (sq === null ? idx : null))
-          .filter((idx) => idx !== null);
+        //độ khó dễ thì dùng random khó thì dùng minimax
+        if (!difficulty) {
+          const emptySquares = squares
+            .map((sq, idx) => (sq === null ? idx : null))
+            .filter((idx) => idx !== null);
 
-        if (emptySquares.length > 0) {
-          const randomIndex =
-            emptySquares[Math.floor(Math.random() * emptySquares.length)];
-          handleClick(randomIndex);
+          if (emptySquares.length > 0) {
+            const randomIndex =
+              emptySquares[Math.floor(Math.random() * emptySquares.length)];
+            handleClick(randomIndex);
+          }
+        } else {          
+          const aiPlayer = isFirst ? "O" : "X";
+          const humanPlayer = isFirst ? "X" : "O";
+          const bestMove = findBestMove(squares, aiPlayer, humanPlayer);
+
+          if (bestMove !== null) {
+            handleClick(bestMove);
+          }
         }
         setIsComputerTurn(false);
       }, timedelay);
     }
-  }, [isXNext, handleClick, isFirst, mode, squares]);
+  }, [isXNext, handleClick, isFirst, mode, squares, difficulty]);
 
   const handleClosePopup = () => {
     if (winner) {
@@ -117,6 +127,54 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+function minimax(squares, depth, isMaximizing, aiPlayer, humanPlayer) {
+  const winner = calculateWinner(squares);
+  if (winner === aiPlayer) return 10 - depth;
+  if (winner === humanPlayer) return depth - 10;
+  if (!squares.includes(null)) return 0; 
+  if (isMaximizing) {
+    let bestScore = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (squares[i] === null) {
+        squares[i] = aiPlayer;
+        const score = minimax(squares, depth + 1, false, aiPlayer, humanPlayer);
+        squares[i] = null;
+        bestScore = Math.max(score, bestScore);
+      }
+    }
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (squares[i] === null) {
+        squares[i] = humanPlayer;
+        const score = minimax(squares, depth + 1, true, aiPlayer, humanPlayer);
+        squares[i] = null;
+        bestScore = Math.min(score, bestScore);
+      }
+    }
+    return bestScore;
+  }
+}
+
+function findBestMove(squares, aiPlayer, humanPlayer) {
+  let bestScore = -Infinity;
+  let bestMove = null;
+
+  for (let i = 0; i < 9; i++) {
+    if (squares[i] === null) {
+      squares[i] = aiPlayer;
+      const score = minimax(squares, 0, false, aiPlayer, humanPlayer);
+      squares[i] = null;
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = i;
+      }
+    }
+  }
+  return bestMove;
 }
 
 export default Board;
