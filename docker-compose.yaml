@@ -4,3 +4,15 @@ services:
     ports:
       - "3001:3000"
     restart: unless-stopped
+    build: .
+    command: npm start
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+
