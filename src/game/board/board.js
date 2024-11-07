@@ -4,9 +4,9 @@ import Popup from "reactjs-popup";
 import Square from "./square/square";
 import PopupComponent from "./popup/popup";
 
-function Board({ mode, isFirst, difficulty }) {
+function Board({ param }) {
   const [squares, setSquares] = useState(Array(9).fill(null));
-  const [isXNext, setIsXNext] = useState(isFirst ? isFirst : true);
+  const [isXNext, setIsXNext] = useState(param.isFirst ? param.isFirst : true);
   const [open, setOpen] = useState(false);
   const [isComputerTurn, setIsComputerTurn] = useState(false);
   const [xScore, setXScore] = useState(0);
@@ -15,7 +15,7 @@ function Board({ mode, isFirst, difficulty }) {
 
   const handleClick = useCallback(
     (index) => {
-      if (squares[index] || calculateWinner(squares) || isComputerTurn) return;
+      if (squares[index] || calculateWinner(squares)) return;
 
       const newSquares = squares.slice();
       newSquares[index] = isXNext ? "X" : "O";
@@ -26,17 +26,22 @@ function Board({ mode, isFirst, difficulty }) {
         setOpen(true);
       }
     },
-    [squares, isXNext, isComputerTurn]
+    [squares, isXNext]
   );
 
   useEffect(() => {
-    if (mode === "PVE" && isXNext !== isFirst && !calculateWinner(squares)) {
+    if (
+      param.mode === "PVE" &&
+      isXNext !== param.isFirst &&
+      !calculateWinner(squares)
+    ) {
       setIsComputerTurn(true);
 
       const timedelay = Math.floor(Math.random() * (3000 - 1000)) + 1000;
       setTimeout(() => {
         //độ khó dễ thì dùng random khó thì dùng minimax
-        if (!difficulty) {
+
+        if (!param.difficulty) {
           const emptySquares = squares
             .map((sq, idx) => (sq === null ? idx : null))
             .filter((idx) => idx !== null);
@@ -46,19 +51,19 @@ function Board({ mode, isFirst, difficulty }) {
               emptySquares[Math.floor(Math.random() * emptySquares.length)];
             handleClick(randomIndex);
           }
-        } else {          
-          const aiPlayer = isFirst ? "O" : "X";
-          const humanPlayer = isFirst ? "X" : "O";
+        } else {
+          const aiPlayer = param.isFirst ? "O" : "X";
+          const humanPlayer = param.isFirst ? "X" : "O";
           const bestMove = findBestMove(squares, aiPlayer, humanPlayer);
 
           if (bestMove !== null) {
             handleClick(bestMove);
           }
         }
-        setIsComputerTurn(false);
+        setIsComputerTurn(false);        
       }, timedelay);
     }
-  }, [isXNext, handleClick, isFirst, mode, squares, difficulty]);
+  }, [isXNext, handleClick, param, squares]);
 
   const handleClosePopup = () => {
     if (winner) {
@@ -79,7 +84,14 @@ function Board({ mode, isFirst, difficulty }) {
   };
 
   function renderSquare(index) {
-    return <Square value={squares[index]} onClick={() => handleClick(index)} />;
+    return (
+      <Square
+        key={index}
+        isDisabled={isComputerTurn}
+        value={squares[index]}
+        onClick={() => handleClick(index)}
+      />
+    );
   }
 
   const winner = calculateWinner(squares);
@@ -133,7 +145,7 @@ function minimax(squares, depth, isMaximizing, aiPlayer, humanPlayer) {
   const winner = calculateWinner(squares);
   if (winner === aiPlayer) return 10 - depth;
   if (winner === humanPlayer) return depth - 10;
-  if (!squares.includes(null)) return 0; 
+  if (!squares.includes(null)) return 0;
   if (isMaximizing) {
     let bestScore = -Infinity;
     for (let i = 0; i < 9; i++) {

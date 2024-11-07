@@ -37,7 +37,7 @@ function Game() {
               onClick={() => {
                 selectMode("PVE");
                 selectedFirst(true);
-                setDifficulty(false); 
+                setDifficulty(false);
               }}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
@@ -47,7 +47,7 @@ function Game() {
               onClick={() => {
                 selectMode("PVE");
                 selectedFirst(true);
-                setDifficulty(true); 
+                setDifficulty(true);
               }}
               className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800"
             >
@@ -57,7 +57,7 @@ function Game() {
               onClick={() => {
                 selectMode("PVE");
                 selectedFirst(false);
-                setDifficulty(false); 
+                setDifficulty(false);
               }}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
@@ -84,7 +84,9 @@ function Game() {
             Quay lại
           </button>
           <div className="game-board">
-            <Board mode={mode} isFirst={isFirst} difficulty={difficulty} />
+            <Board
+              param={{ mode: mode, isFirst: isFirst, difficulty: difficulty }}
+            />
           </div>
         </div>
       )}
